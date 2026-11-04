@@ -1,6 +1,6 @@
 # KubernetesからOpenShiftへのアプリケーション移行・認定タスク一覧
 
-本ドキュメントは、Kubernetes（K8s）環境で稼働している既存アプリケーションをRed Hat OpenShiftへ移植し、**Red Hat Universal Base Image（UBI）の採用**、**Red Hat Container Certification（コンテナ認定）、およびOpenShift Operator / Helm Certification（OpenShift認定）**を取得・維持するための一連のタスク一覧です。
+本ドキュメントは、Kubernetes（K8s）環境で稼働している既存アプリケーションをRed Hat OpenShiftへ移植し、Red Hat Universal Base Image（UBI）の採用、**Red Hat Container Certification（コンテナ認定）、およびOpenShift Operator / Helm Certification（OpenShift認定）**を取得・維持するための一連のタスク一覧です。
 
 ---
 
