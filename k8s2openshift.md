@@ -1,9 +1,6 @@
-Kubernetesで稼働するアプリケーションを、Red Hat Universal Base Image（UBI）の採用、Red Hat コンテナ認定、およびOpenShift認定の取得を前提として移植・認定化するタスク一覧をMarkdown形式で以下にまとめます。
-
-```markdown
 # KubernetesからOpenShiftへのアプリケーション移行・認定タスク一覧
 
-本ドキュメントは、Kubernetes（K8s）環境で稼働しているアプリケーションをRed Hat OpenShiftへ移植し、**Red Hat Universal Base Image（UBI）の採用**、**Red Hat Container Certification（コンテナ認定）**、および**OpenShift Operator / Helm Certification（OpenShift認定）**を取得するための一連のタスクを定義したものです。
+本ドキュメントは、Kubernetes（K8s）環境で稼働している既存アプリケーションをRed Hat OpenShiftへ移植し、**Red Hat Universal Base Image（UBI）の採用**、**Red Hat Container Certification（コンテナ認定）**、および**OpenShift Operator / Helm Certification（OpenShift認定）**を取得・維持するための一連のタスク一覧です。
 
 ---
 
@@ -11,11 +8,11 @@ Kubernetesで稼働するアプリケーションを、Red Hat Universal Base Im
 
 | フェーズ | 主要目標 | 主要成果物 |
 | :--- | :--- | :--- |
-| **Phase 1: ベースイメージ設計・移行** | UBIへの移行、ライセンス同梱、マルチアーキテクチャ対応 | UBI準拠 Containerfile / Dockerfile |
-| **Phase 2: セキュリティ・権限適合** | 非Root実行（任意UID対応）、SCC適合、特権排除 | 非特権対応コンテナイメージ |
+| **Phase 1: ベースイメージ設計・移行** | UBIへの刷新、ライセンス同梱、マルチアーキテクチャ対応 | UBI準拠 Containerfile / Dockerfile |
+| **Phase 2: セキュリティ・権限適合** | 非Root実行（任意UID対応）、SCC適合、特権排除 | SCC準拠・非特権対応コンテナイメージ |
 | **Phase 3: パッケージング** | Operator (OLM) または Helm Chart 形式でのパッケージ化 | ClusterServiceVersion (CSV) / Helm Chart |
-| **Phase 4: 事前テスト・検証** | Partner Connectプロジェクト登録、Preflight CLIによる検証 | Preflightテスト実行結果ログ |
-| **Phase 5: 認定申請・運用公開** | Pyxis提出、脆弱性管理、Ecosystem Catalog公開 | 認定完了バッジ、OperatorHub公開 |
+| **Phase 4: 事前テスト・検証** | Partner Connect登録、Preflight CLIによる適合性チェック | Preflight検証レポート・テストログ |
+| **Phase 5: 認定申請・運用公開** | Pyxis提出、脆弱性評価、Ecosystem Catalog公開 | 認定完了バッジ、OperatorHubカタログ公開 |
 
 ---
 
@@ -23,7 +20,7 @@ Kubernetesで稼働するアプリケーションを、Red Hat Universal Base Im
 
 ### Phase 1: ベースイメージのUBI移行とビルド設計
 
-Red Hatコンテナ認定の必須前提条件として、コンテナイメージがRed Hat Enterprise Linux（RHEL）またはUniversal Base Image（UBI）をベースに構築されている必要があります。
+コンテナ認定の必須前提条件として、コンテナイメージがRed Hat Enterprise Linux（RHEL）またはUniversal Base Image（UBI）をベースに構築されている必要があります。
 
 - [ ] **1.1 UBIフレーバーの選定**
   - アプリケーション要件に応じたベースイメージを選択。
@@ -34,17 +31,17 @@ Red Hatコンテナ認定の必須前提条件として、コンテナイメー�
 - [ ] **1.2 パッケージ管理・ビルド手順の刷新**
   - Debian系（`apt`）やAlpine系（`apk`）のインストールコマンドを`dnf`または`microdnf`に置換。
   - パッケージ取得先を公式UBIリポジトリ（`ubi-9-baseos`, `ubi-9-appstream`）に統一。
-  - キャッシュのクリーンアップ（`microdnf clean all` / `rm -rf /var/cache/yum`）を徹底。
+  - イメージサイズ最小化のためキャッシュクリーンアップ（`microdnf clean all` / `rm -rf /var/cache/yum`）を徹底。
 - [ ] **1.3 ライセンスファイルの配置（認定必須要件）**
-  - コンテナ内の `/licenses` ディレクトリに、自社ソフトウェア利用許諾契約および使用しているオープンソースライセンスを必ず配置。
-- [ ] **1.4 マルチアーキテクチャビルド（推奨・要件に応じる）**
-  - `podman build --platform=linux/amd64,linux/arm64` によるマニフェストリスト作成とQuay等のレジストリへのPush。
+  - コンテナ内の `/licenses` ディレクトリに、自社ソフトウェア利用許諾契約書および使用しているOSSライセンス群を配置。
+- [ ] **1.4 マルチアーキテクチャビルド対応（推奨・要件に応じる）**
+  - `podman build --platform=linux/amd64,linux/arm64` によるマニフェストリスト作成とQuay等のレジストリへのプッシュ。
 
 ---
 
 ### Phase 2: OpenShiftセキュリティ・実行要件への適合
 
-OpenShift標準のSecurity Context Constraints（SCC: `restricted-v2`）配下で正常稼働するコンテナ設計を実施します。
+OpenShift標準のSecurity Context Constraints（SCC: `restricted-v2`）配下で完全動作するコンテナ設計を実施します。
 
 - [ ] **2.1 非Rootおよび任意UID（Arbitrary UID）実行対応**
   - Dockerfile内で `USER` にRoot（`0`）を指定せず、`USER 1001` 等の非特権ユーザーを定義。
@@ -68,7 +65,7 @@ OpenShift標準のSecurity Context Constraints（SCC: `restricted-v2`）配下�
 
 ### Phase 3: OpenShiftパッケージング（Operator または Helm）
 
-OpenShift認定では、配布形態としてOperator（推奨）またはHelm Chartが必要です。
+OpenShift認定を受けるための配布形態として、Operator（推奨）またはHelm Chartを作成します。
 
 #### A. Operator方式（Operator Lifecycle Manager / OLM）
 - [ ] **3.1 Operatorの作成**
@@ -88,11 +85,10 @@ OpenShift認定では、配布形態としてOperator（推奨）またはHelm C
 
 ### Phase 4: Red Hat Partner Connectでの事前検証とテスト実行
 
-Red Hat公式認定ツール `preflight` CLI を使用して、要件クリアを確認します。
+Red Hat公式認定ツール `preflight` CLI を使用して、要件適合性を検証します。
 
 - [ ] **4.1 Partner Connectでのプロジェクト作成**
-  - [Red Hat Partner Connect](https://connect.redhat.com/) にログインし、組織アカウントを作成。
-  - 認定プロジェクト（Container Project / Operator Project）を作成し、APIトークンを発行。
+  - [Red Hat Partner Connect](https://connect.redhat.com/) にログインし、認定プロジェクト（Container Project / Operator Project）を作成してAPIトークンを発行。
 - [ ] **4.2 Preflight CLI によるコンテナ認定テスト**
   - コンテナイメージに対してテストを実行：
     ```bash
@@ -125,4 +121,3 @@ Red Hat公式認定ツール `preflight` CLI を使用して、要件クリア�
   - 承認後、**Red Hat Ecosystem Catalog** および OpenShiftクラスタ内の **OperatorHub** に正式公開。
 - [ ] **5.4 継続的再認定（CI/CDパイプライン統合）**
   - アプリケーション更新時やOpenShift新バージョンリリース時に自動的にPreflightテスト・再認定を行えるようCI/CDパイプラインに組み込み。
-```
